@@ -1,4 +1,4 @@
-const { Sequelize, DataTypes } = require("sequelize");
+const { Sequelize, DataTypes ,Op} = require("sequelize");
 
 const config = require("./config");
 const sequelize = new Sequelize(
@@ -221,5 +221,5 @@ module.exports = {
   UserModel,
   DictModel,
   DictItemModel,
-  Op:sequelize.Op
+  Op
 };

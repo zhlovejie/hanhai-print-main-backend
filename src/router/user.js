@@ -1,130 +1,102 @@
 const db_models = require("../db/db");
-const {
-  createToken,
-  verifyToken,
-  md5,
-  getSalt,
-  uuid,
-  isEmpty,
-} = require("../utils/utils");
+const { createToken, md5, getSalt, uuid, isEmpty } = require("../utils/utils");
+
+const HttpResult = require("../vo/HttpResult");
 const UserModel = db_models.UserModel;
 
 async function login({ username, password }) {
   let filter = {
     username,
   };
-  let user = await UserModel.findOne({
-    where: filter,
-    raw: true,
-  });
+  let attributes = {
+    
+  };
+  let user = await UserModel.findOne(
+    {
+      attributes,
+      where: filter,
+    },
+    {
+      raw: true,
+    }
+  );
   // 没有该用户
   if (user === null) {
-    return {
-      success: "true",
-      code: 200,
-      message: "用户名或密码错误",
-      result: {},
-      timestamp: Date.now(),
-    };
+    return HttpResult.fail({ message: "用户名或密码错误" });
   }
 
   if (user.password !== md5(String(password).trim(), user.salt)) {
-    return {
-      success: "true",
-      code: 200,
-      message: "用户名或密码错误",
-      result: {},
-      timestamp: Date.now(),
-    };
+    return HttpResult.fail({ message: "用户名或密码错误" });
   }
-
-  // 隐藏一些字段
-  let ignoreAttributes = [
-    "password",
-    "salt",
-    "create_by",
-    "create_time",
-    "update_by",
-    "update_time",
-  ];
-  ignoreAttributes.map((key) => {
-    delete user[key];
-  });
 
   let token = createToken(user, 60 * 60 * 2);
 
-  return {
-    success: "true",
-    code: 200,
+  return HttpResult.success({
     message: `欢迎，${user.realname || user.username}`,
     result: {
-      user,
-      token,
+      token
     },
-    timestamp: Date.now(),
-  };
+  });
 }
 
 async function loginout(token) {
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
-    result: {},
-    timestamp: Date.now(),
-  };
+  return HttpResult.success();
 }
 
-async function getUserInfo(token) {
-  if (!token) {
-    return {
-      success: "true",
-      code: 50008,
-      message: `token 失效`,
-      result: {},
-      timestamp: Date.now(),
-    };
-  }
-  let result = await verifyToken(token);
-  if (result === null) {
-    return {
-      success: "true",
-      code: 50008,
-      message: `token 失效`,
-      result: {},
-      timestamp: Date.now(),
-    };
-  }
+async function getUserInfo(id) {
+  let attributes = {
+    // 排除一些属性
+    exclude: [
+      "password",
+      "salt",
+      "create_by",
+      "create_time",
+      "update_by",
+      "update_time",
+    ],
+  };
 
   let where = {
-    id: result.data.id,
+    id,
   };
 
   let userInstance = await UserModel.findOne(
     {
+      attributes,
       where: where,
     },
-    { raw: true }
+    {
+      raw: true,
+    }
   );
-
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
-    result: userInstance,
-    timestamp: Date.now(),
-  };
+  return HttpResult.success({ result: userInstance });
 }
 
 async function getUser(id) {
+  let attributes = {
+    // 排除一些属性
+    exclude: [
+      "password",
+      "salt",
+      "create_by",
+      "create_time",
+      "update_by",
+      "update_time",
+    ],
+  };
   let filter = {
     id,
   };
-  let user = await UserModel.findOne({
-    where: filter,
-    raw: true,
-  });
-  return user;
+  let userInstance = await UserModel.findOne(
+    {
+      attributes,
+      where: where,
+    },
+    {
+      raw: true,
+    }
+  );
+  return HttpResult.success({ result: userInstance });
 }
 
 async function addUser({
@@ -183,13 +155,7 @@ async function addUser({
     update_by: "admin",
     update_time: date,
   });
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
-    result: {},
-    timestamp: Date.now(),
-  };
+  return HttpResult.success();
 }
 
 async function editUser({ id, realname, avatar, birthday, sex, email, phone }) {
@@ -228,13 +194,7 @@ async function editUser({ id, realname, avatar, birthday, sex, email, phone }) {
 
   await userInstance.save();
 
-  return {
-    success: "true",
-    code: 200,
-    message: "操作成功",
-    result: {},
-    timestamp: Date.now(),
-  };
+  return HttpResult.success();
 }
 
 async function delUser({ id }) {
@@ -249,15 +209,7 @@ async function delUser({ id }) {
     { raw: true }
   );
 
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
-    result: {
-      rows,
-    },
-    timestamp: Date.now(),
-  };
+  return HttpResult.success();
 }
 
 async function delUserBySoft({ id }) {
@@ -275,14 +227,7 @@ async function delUserBySoft({ id }) {
     del_flag: 1,
   });
   await userInstance.save();
-
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
-    result: {},
-    timestamp: Date.now(),
-  };
+  return HttpResult.success();
 }
 
 async function getUserPageList({
@@ -322,17 +267,14 @@ async function getUserPageList({
     offset: (page_no - 1) * page_size,
     raw: true,
   });
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
+
+  return HttpResult.success({
     result: {
       page: page_no,
       count,
       records: rows,
     },
-    timestamp: Date.now(),
-  };
+  });
 }
 
 module.exports = {

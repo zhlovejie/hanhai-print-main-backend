@@ -4,6 +4,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const multer = require("multer");
+const tokenChecker = require("./middleware/tokenChecker")
 const app = express();
 
 const { uuid,verifyToken } = require("./utils/utils");
@@ -25,12 +26,15 @@ const upload = multer({
 });
 
 const bizUser = require("./router/user");
+const bizDict = require("./router/dict");
 
 // create application/json parser
 const jsonParser = bodyParser.json();
 
 // create application/x-www-form-urlencoded parser
 // const urlencodedParser = bodyParser.urlencoded({ extended: false });
+
+
 
 app.use(cors());
 
@@ -42,9 +46,9 @@ app.post("/sys/user/login", jsonParser, async function (req, res) {
 });
 
 // POST /api/users gets JSON bodies
-app.get("/sys/user/baseinfo", async function (req, res) {
-  let token = req.headers["x-access-token"];
-  let result = await bizUser.getUserInfo(token);
+app.get("/sys/user/baseinfo",tokenChecker, async function (req, res) {
+  console.log(req.jwtinfo)
+  let result = await bizUser.getUserInfo(req.jwtinfo.id);
   // create user in req.body
   res.json(result);
 });
@@ -56,21 +60,8 @@ app.post("/sys/user/logout", async function (req, res) {
   res.json(result);
 });
 
-app.post("/sys/user/edit", jsonParser,async function (req, res) {
+app.post("/sys/user/edit", [jsonParser,tokenChecker],async function (req, res) {
   const {id, realname, avatar, birthday, sex, email, phone } = req.body
-  let token = req.headers["x-access-token"];
-  let tokenResult = await verifyToken(token)
-  console.log(tokenResult)
-  if(tokenResult === null){
-    res.json({
-      success: "false",
-      code: 500,
-      message: "失败",
-      result: {},
-      timestamp: Date.now(),
-    });
-  }
-
   let result = await bizUser.editUser({id, realname, avatar, birthday, sex, email, phone})
   res.json(result);
 });
@@ -122,6 +113,60 @@ app.get("/static/uploads/:fileName", function (req, res, next) {
   }
 });
 
+
+app.post("/sys/dict/add",[jsonParser,tokenChecker],async function (req,res,next){
+  
+  let {dict_name, dict_code, description} = req.body
+  let result = await bizDict.addDict({dict_name, dict_code, description,_jwtinfo:req.jwtinfo})
+  res.json(result);
+})
+
+app.post("/sys/dict/edit",[jsonParser,tokenChecker],async function (req,res,next){
+  let {id,dict_name, dict_code, description} = req.body
+  let result = await bizDict.editDict({id,dict_name, dict_code, description,_jwtinfo:req.jwtinfo})
+  res.json(result);
+})
+
+app.post("/sys/dict/del/:id",[jsonParser,tokenChecker],async function (req,res,next){
+  let id = req.params.id;
+  let result = await bizDict.delDict({id})
+  res.json(result);
+})
+
+app.get("/sys/dict/pageList",[tokenChecker],async function (req,res,next){
+  let { page_no, page_size, dict_name, dict_code } = req.query
+  let _page_no = Number(page_no) || 1
+  let _page_size = Number(page_size) || 10
+  let result = await bizDict.dictPageList({page_no:_page_no, page_size:_page_size, dict_name, dict_code,_jwtinfo:req.jwtinfo})
+  res.json(result);
+})
+
+
+app.post("/sys/dict/item/add",[jsonParser,tokenChecker],async function (req,res,next){
+  let {dict_id, item_text, item_value, description, sort_order} = req.body
+  let result = await bizDict.addDictItem({dict_id, item_text, item_value, description, sort_order,_jwtinfo:req.jwtinfo})
+  res.json(result);
+})
+
+app.post("/sys/dict/item/edit",[jsonParser,tokenChecker],async function (req,res,next){
+  let {id, item_text, item_value, description, sort_order, status} = req.body
+  let result = await bizDict.editDictItem({id, item_text, item_value, description, sort_order, status,_jwtinfo:req.jwtinfo})
+  res.json(result);
+})
+
+app.post("/sys/dict/item/del/:id",[jsonParser,tokenChecker],async function (req,res,next){
+  let {id} = req.body
+  let result = await bizDict.delDictItem({id})
+  res.json(result);
+})
+
+app.get("/sys/dict/item/pageList",[tokenChecker],async function (req,res,next){
+  let { page_no, page_size, item_text, item_value } = req.query
+  let _page_no = Number(page_no)
+  let _page_size = Number(page_size)
+  let result = await bizDict.dictItemPageList({page_no:_page_no, page_size:_page_size, item_text, item_value,_jwtinfo:req.jwtinfo})
+  res.json(result);
+})
 
 
 let server = app.listen(9999, function () {

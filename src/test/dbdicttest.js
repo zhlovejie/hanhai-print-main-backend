@@ -54,13 +54,14 @@ async function testDictPageList() {
 }
 
 async function test() {
-  // testAddDict()
+  await testAddDict()
+  
+  await testDictPageList();
 
   // testEditDict()
 
   // testDelDict()
 
-  testDictPageList();
 }
 
 test();

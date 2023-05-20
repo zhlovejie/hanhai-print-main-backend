@@ -1,13 +1,14 @@
 const db_models = require("../db/db");
 const { uuid } = require("../utils/utils");
-const { DictModel, DictItemModel, Op } = db_models;
-
+const { Op} = require("sequelize");
+const { DictModel, DictItemModel } = db_models;
+const HttpResult = require("../vo/HttpResult");
 /**
  * 数据字典新增
  * @param {*} param0
  * @returns
  */
-async function addDict({ dict_name, dict_code, description }) {
+async function addDict({ dict_name, dict_code, description, _jwtinfo }) {
   let date = Date.now();
   let dict = await DictModel.create({
     id: uuid(32),
@@ -15,18 +16,12 @@ async function addDict({ dict_name, dict_code, description }) {
     dict_code,
     description,
     del_flag: "0",
-    create_by: "admin",
+    create_by: _jwtinfo.id,
     create_time: date,
-    update_by: "admin",
+    update_by: _jwtinfo.id,
     update_time: date,
   });
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
-    result: dict.get({ plain: true }),
-    timestamp: Date.now(),
-  };
+  return HttpResult.success();
 }
 
 /**
@@ -53,15 +48,7 @@ async function editDict({ id, dict_name, dict_code, description }) {
     { raw: true }
   );
 
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
-    result: {
-      rows,
-    },
-    timestamp: Date.now(),
-  };
+  return HttpResult.success();
 }
 
 /**
@@ -81,15 +68,7 @@ async function delDict({ id }) {
     { raw: true }
   );
 
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
-    result: {
-      rows,
-    },
-    timestamp: Date.now(),
-  };
+  return HttpResult.success();
 }
 
 /**
@@ -102,8 +81,14 @@ async function dictPageList({
   page_size = 10,
   dict_name = "",
   dict_code = "",
+  _jwtinfo,
 }) {
-  let filter = {};
+  let filter = {
+    create_by: _jwtinfo.id,
+  };
+  let order = [
+    ['create_time','DESC']
+  ]
 
   if (dict_name) {
     Object.assign(filter, {
@@ -121,22 +106,19 @@ async function dictPageList({
   }
 
   let { count, rows } = await DictModel.findAndCountAll({
+    order,
     where: filter,
     limit: page_size,
     offset: (page_no - 1) * page_size,
     raw: true,
   });
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
+  return HttpResult.success({
     result: {
       page: page_no,
       count,
       records: rows,
     },
-    timestamp: Date.now(),
-  };
+  });
 }
 
 /**
@@ -148,8 +130,9 @@ async function addDictItem({
   dict_id,
   item_text,
   item_value,
-  description,
+  description = "",
   sort_order = null,
+  _jwtinfo,
 }) {
   let date = Date.now();
   let dictItem = await DictItemModel.create({
@@ -160,18 +143,12 @@ async function addDictItem({
     description,
     sort_order,
     status: "1",
-    create_by: "admin",
+    create_by: _jwtinfo.id,
     create_time: date,
-    update_by: "admin",
+    update_by: _jwtinfo.id,
     update_time: date,
   });
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
-    result: dictItem.get({ plain: true }),
-    timestamp: Date.now(),
-  };
+  return HttpResult.success();
 }
 
 /**
@@ -217,15 +194,7 @@ async function editDictItem({
     { raw: true }
   );
 
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
-    result: {
-      rows,
-    },
-    timestamp: Date.now(),
-  };
+  return HttpResult.success();
 }
 
 /**
@@ -238,22 +207,14 @@ async function delDictItem({ id }) {
     id,
   };
 
-  let rows = await DictItemModel.destroy(
+  await DictItemModel.destroy(
     {
       where: where,
     },
     { raw: true }
   );
 
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
-    result: {
-      rows,
-    },
-    timestamp: Date.now(),
-  };
+  return HttpResult.success();
 }
 
 /**
@@ -266,8 +227,17 @@ async function dictItemPageList({
   page_size = 10,
   item_text = "",
   item_value = "",
+  _jwtinfo,
 }) {
-  let filter = {};
+
+  let order = [
+    ['create_time','DESC']
+  ]
+
+  let filter = {
+    create_by: _jwtinfo.id,
+  };
+
 
   if (item_text) {
     Object.assign(filter, {
@@ -285,22 +255,19 @@ async function dictItemPageList({
   }
 
   let { count, rows } = await DictItemModel.findAndCountAll({
+    order,
     where: filter,
     limit: page_size,
     offset: (page_no - 1) * page_size,
     raw: true,
   });
-  return {
-    success: "true",
-    code: 200,
-    message: "成功",
+  return HttpResult.success({
     result: {
       page: page_no,
       count,
       records: rows,
     },
-    timestamp: Date.now(),
-  };
+  });
 }
 
 module.exports = {
