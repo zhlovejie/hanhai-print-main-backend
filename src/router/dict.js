@@ -1,6 +1,6 @@
 const db_models = require("../db/db");
 const { uuid } = require("../utils/utils");
-const { Op} = require("sequelize");
+const { Op } = require("sequelize");
 const { DictModel, DictItemModel } = db_models;
 const HttpResult = require("../vo/HttpResult");
 /**
@@ -86,9 +86,7 @@ async function dictPageList({
   let filter = {
     create_by: _jwtinfo.id,
   };
-  let order = [
-    ['create_time','DESC']
-  ]
+  let order = [["create_time", "DESC"]];
 
   if (dict_name) {
     Object.assign(filter, {
@@ -227,17 +225,15 @@ async function dictItemPageList({
   page_size = 10,
   item_text = "",
   item_value = "",
+  dict_id,
   _jwtinfo,
 }) {
-
-  let order = [
-    ['create_time','DESC']
-  ]
+  let order = [["sort_order", "ASC"]];
 
   let filter = {
+    dict_id,
     create_by: _jwtinfo.id,
   };
-
 
   if (item_text) {
     Object.assign(filter, {

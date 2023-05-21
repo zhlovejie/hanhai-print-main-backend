@@ -155,16 +155,16 @@ app.post("/sys/dict/item/edit",[jsonParser,tokenChecker],async function (req,res
 })
 
 app.post("/sys/dict/item/del/:id",[jsonParser,tokenChecker],async function (req,res,next){
-  let {id} = req.body
+  let id = req.params.id;
   let result = await bizDict.delDictItem({id})
   res.json(result);
 })
 
 app.get("/sys/dict/item/pageList",[tokenChecker],async function (req,res,next){
-  let { page_no, page_size, item_text, item_value } = req.query
+  let { page_no, page_size,dict_id, item_text, item_value } = req.query
   let _page_no = Number(page_no)
   let _page_size = Number(page_size)
-  let result = await bizDict.dictItemPageList({page_no:_page_no, page_size:_page_size, item_text, item_value,_jwtinfo:req.jwtinfo})
+  let result = await bizDict.dictItemPageList({page_no:_page_no, page_size:_page_size, item_text, item_value,dict_id,_jwtinfo:req.jwtinfo})
   res.json(result);
 })
 
