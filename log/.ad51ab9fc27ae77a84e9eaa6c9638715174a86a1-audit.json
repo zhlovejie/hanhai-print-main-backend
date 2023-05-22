@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "g:\\王正正工作相关\\合作项目\\安全证书打印项目\\hanhai-print-main-backend\\log\\.ad51ab9fc27ae77a84e9eaa6c9638715174a86a1-audit.json",
+    "files": [
+        {
+            "date": 1684768167590,
+            "name": "g:\\王正正工作相关\\合作项目\\安全证书打印项目\\hanhai-print-main-backend\\log\\error-2023-05-22-23.log",
+            "hash": "5867df108779511bd9e312eaf4ec94647a9ddd88108f78dd239d23c49e8133f7"
+        }
+    ],
+    "hashType": "sha256"
+}

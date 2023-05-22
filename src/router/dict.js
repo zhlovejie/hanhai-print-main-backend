@@ -230,40 +230,46 @@ async function dictItemPageList({
 }) {
   let order = [["sort_order", "ASC"]];
 
-  let filter = {
-    dict_id,
-    create_by: _jwtinfo.id,
-  };
+  try{
 
-  if (item_text) {
-    Object.assign(filter, {
-      item_text: {
-        [Op.like]: `%${item_text}%`,
+    let filter = {
+      dict_id,
+      create_by: _jwtinfo.id,
+    };
+  
+    if (item_text) {
+      Object.assign(filter, {
+        item_text: {
+          [Op.like]: `%${item_text}%`,
+        },
+      });
+    }
+    if (item_value) {
+      Object.assign(filter, {
+        item_value: {
+          [Op.like]: `%${item_value}%`,
+        },
+      });
+    }
+  
+    let { count, rows } = await DictItemModel.findAndCountAll({
+      order,
+      where: filter,
+      limit: page_size,
+      offset: (page_no - 1) * page_size,
+      raw: true,
+    });
+    return HttpResult.success({
+      result: {
+        page: page_no,
+        count,
+        records: rows,
       },
     });
+  }catch(err){
+    console.error(err.message)
   }
-  if (item_value) {
-    Object.assign(filter, {
-      item_value: {
-        [Op.like]: `%${item_value}%`,
-      },
-    });
-  }
-
-  let { count, rows } = await DictItemModel.findAndCountAll({
-    order,
-    where: filter,
-    limit: page_size,
-    offset: (page_no - 1) * page_size,
-    raw: true,
-  });
-  return HttpResult.success({
-    result: {
-      page: page_no,
-      count,
-      records: rows,
-    },
-  });
+  return HttpResult.fail()
 }
 
 module.exports = {

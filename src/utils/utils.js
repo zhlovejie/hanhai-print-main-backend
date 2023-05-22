@@ -80,7 +80,9 @@ function isEmpty(val){
   return val === '' || val === undefined || val === null
 }
 
-
+function isNumber(val){
+  return !isNaN(parseFloat(val)) && isFinite(val)
+}
 
 module.exports = {
   md5,
@@ -88,5 +90,6 @@ module.exports = {
   uuid,
   createToken,
   verifyToken,
-  isEmpty
+  isEmpty,
+  isNumber
 };
