@@ -1,13 +1,14 @@
-const { Sequelize, DataTypes ,Op} = require("sequelize");
+const { Sequelize, DataTypes, Op } = require("sequelize");
 
-const config = require("./config");
+const config = require("../config");
+const db_config = config.db;
 const sequelize = new Sequelize(
-  config.database,
-  config.username,
-  config.password,
+  db_config.database,
+  db_config.username,
+  db_config.password,
   {
-    host: config.host,
-    dialect: config.dialect,
+    host: db_config.host,
+    dialect: db_config.dialect,
     pool: {
       max: 5,
       min: 0,
@@ -28,7 +29,7 @@ const sequelize = new Sequelize(
   }
 );
 
-// 用户表
+/**用户表 */
 let UserModel = sequelize.define(
   "User",
   {
@@ -109,7 +110,7 @@ let UserModel = sequelize.define(
   }
 );
 
-//字典表
+/**字典表 */
 let DictModel = sequelize.define(
   "Dict",
   {
@@ -158,7 +159,7 @@ let DictModel = sequelize.define(
   }
 );
 
-//字典项目表
+/**字典项目表 */
 let DictItemModel = sequelize.define(
   "DictItem",
   {
@@ -221,5 +222,5 @@ module.exports = {
   UserModel,
   DictModel,
   DictItemModel,
-  Op
+  Op,
 };

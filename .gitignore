@@ -17,3 +17,6 @@ tests/**/coverage/
 
 # uploads
 uploads/
+
+#logs
+log/

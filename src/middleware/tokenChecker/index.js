@@ -1,5 +1,11 @@
-const { verifyToken } = require("../../utils/utils");
+const { verifyToken } = require("../../utils");
 const HttpResult = require("../../vo/HttpResult");
+
+/**以下接口不校验token */
+const whiteList = [
+  '/sys/user/login'
+]
+
 /**
  * 检测token
  * 校验通过：把token的信息附加到body.jwtinfo上
@@ -10,6 +16,10 @@ const HttpResult = require("../../vo/HttpResult");
  * @returns
  */
 async function tokenChecker(req, res, next) {
+  if(whiteList.find(url => url.startsWith(req.path))){
+    next()
+    return
+  }
   let token = req.headers["x-access-token"];
   if (!token) {
     res.json(HttpResult.jwtfail());

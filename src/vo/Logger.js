@@ -1,13 +1,14 @@
-const path = require('path');
+const path = require("path");
 const winston = require("winston");
 require("winston-daily-rotate-file");
 
+const config = require("../config");
 /**日志文件目录 */
-const logPath = path.join(__dirname, "../../log");
+const logPath = config.logPath;
 
 var transportError = new winston.transports.DailyRotateFile({
-  filename: path.join(logPath,"error-%DATE%.log"),
-  datePattern: "YYYY-MM-DD-HH",
+  filename: path.join(logPath, "error-%DATE%.log"),
+  datePattern: "YYYY-MM-DD",
   zippedArchive: true,
   maxSize: "20m",
   maxFiles: "14d",
@@ -15,8 +16,8 @@ var transportError = new winston.transports.DailyRotateFile({
 });
 
 var transportInfo = new winston.transports.DailyRotateFile({
-  filename: path.join(logPath,"info-%DATE%.log"),
-  datePattern: "YYYY-MM-DD-HH",
+  filename: path.join(logPath, "info-%DATE%.log"),
+  datePattern: "YYYY-MM-DD",
   zippedArchive: true,
   maxSize: "20m",
   maxFiles: "14d",
@@ -58,7 +59,10 @@ const logger = winston.createLogger({
 
 logger.add(
   new winston.transports.Console({
-    format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.simple()
+    ),
   })
 );
 
