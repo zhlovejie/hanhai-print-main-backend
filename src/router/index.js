@@ -10,7 +10,7 @@ const {
 } = require("../middleware");
 
 function install(app) {
-  let middlewares = [cors, jsonParser, urlencodedParser, tokenChecker];
+  let middlewares = [cors, tokenChecker, jsonParser, urlencodedParser];
   middlewares.map((r) => app.use(r));
   let allRouters = [routerUser, routerUpload, routerDict];
   allRouters.map((r) => app.use(r));

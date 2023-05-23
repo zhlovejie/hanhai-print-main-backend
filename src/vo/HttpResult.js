@@ -1,3 +1,4 @@
+const logger = require("./Logger");
 /**
  * 简单的状态返回
  */
@@ -8,7 +9,7 @@ class HttpResult {
    * @returns
    */
   static success(opt) {
-    return Object.assign(
+    let result = Object.assign(
       {
         code: HttpResultCode.success,
         message: "成功",
@@ -17,6 +18,8 @@ class HttpResult {
       },
       opt
     );
+    logger.info(result);
+    return result;
   }
 
   /**
@@ -25,7 +28,7 @@ class HttpResult {
    * @returns
    */
   static fail(opt) {
-    return Object.assign(
+    let result = Object.assign(
       {
         code: HttpResultCode.fail,
         message: "失败",
@@ -34,6 +37,8 @@ class HttpResult {
       },
       opt
     );
+    logger.info(result);
+    return result;
   }
 
   /**
@@ -42,7 +47,7 @@ class HttpResult {
    * @returns
    */
   static jwtfail(opt) {
-    return Object.assign(
+    let result = Object.assign(
       {
         code: HttpResultCode.fail,
         message: "失败",
@@ -51,6 +56,8 @@ class HttpResult {
       },
       opt
     );
+    logger.info(result);
+    return result;
   }
 }
 

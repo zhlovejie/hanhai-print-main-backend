@@ -24,7 +24,7 @@ const upload = multer({
 });
 
 module.exports = {
-  cors,
+  cors:cors(),
   jsonParser,
   urlencodedParser,
   tokenChecker,

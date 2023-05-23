@@ -1,10 +1,8 @@
 const { verifyToken } = require("../../utils");
 const HttpResult = require("../../vo/HttpResult");
-
+const logger = require("../../vo/Logger");
 /**以下接口不校验token */
-const whiteList = [
-  '/sys/user/login'
-]
+const whiteList = ["/sys/user/login", "/sys/common/upload", "/static/uploads/"];
 
 /**
  * 检测token
@@ -16,12 +14,15 @@ const whiteList = [
  * @returns
  */
 async function tokenChecker(req, res, next) {
-  if(whiteList.find(url => url.startsWith(req.path))){
-    next()
-    return
+  if (whiteList.find((url) => req.path.includes(url))) {
+    next();
+    return;
   }
   let token = req.headers["x-access-token"];
   if (!token) {
+    logger.warn({
+      message: `请求 ${req.path} 被拦截.`,
+    });
     res.json(HttpResult.jwtfail());
     return;
   }

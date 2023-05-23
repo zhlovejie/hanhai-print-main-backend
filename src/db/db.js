@@ -1,5 +1,5 @@
 const { Sequelize, DataTypes, Op } = require("sequelize");
-
+const logger = require("../vo/Logger")
 const config = require("../config");
 const db_config = config.db;
 const sequelize = new Sequelize(
@@ -26,6 +26,7 @@ const sequelize = new Sequelize(
         return next();
       },
     },
+    logging:(msg) => logger.info(msg)
   }
 );
 

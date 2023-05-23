@@ -3,25 +3,33 @@ const { uuid } = require("../utils");
 const { Op } = require("sequelize");
 const { DictModel, DictItemModel } = db_models;
 const HttpResult = require("../vo/HttpResult");
+const logger = require("../vo/Logger");
 /**
  * 数据字典新增
  * @param {*} param0
  * @returns
  */
 async function addDict({ dict_name, dict_code, description, _jwtinfo }) {
-  let date = Date.now();
-  let dict = await DictModel.create({
-    id: uuid(32),
-    dict_name,
-    dict_code,
-    description,
-    del_flag: "0",
-    create_by: _jwtinfo.id,
-    create_time: date,
-    update_by: _jwtinfo.id,
-    update_time: date,
-  });
-  return HttpResult.success();
+  try {
+    let date = Date.now();
+    let dict = await DictModel.create({
+      id: uuid(32),
+      dict_name,
+      dict_code,
+      description,
+      del_flag: "0",
+      create_by: _jwtinfo.id,
+      create_time: date,
+      update_by: _jwtinfo.id,
+      update_time: date,
+    });
+    return HttpResult.success({
+      result: dict.get({ plain: true }),
+    });
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
+  }
 }
 
 /**
@@ -30,25 +38,30 @@ async function addDict({ dict_name, dict_code, description, _jwtinfo }) {
  * @returns
  */
 async function editDict({ id, dict_name, dict_code, description }) {
-  let values = {
-    dict_name,
-    dict_code,
-    description,
-  };
+  try {
+    let values = {
+      dict_name,
+      dict_code,
+      description,
+    };
 
-  let where = {
-    id,
-  };
+    let where = {
+      id,
+    };
 
-  let rows = await DictModel.update(
-    values,
-    {
-      where: where,
-    },
-    { raw: true }
-  );
+    await DictModel.update(
+      values,
+      {
+        where: where,
+      },
+      { raw: true }
+    );
 
-  return HttpResult.success();
+    return HttpResult.success();
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
+  }
 }
 
 /**
@@ -57,18 +70,23 @@ async function editDict({ id, dict_name, dict_code, description }) {
  * @returns
  */
 async function delDict({ id }) {
-  let where = {
-    id,
-  };
+  try {
+    let where = {
+      id,
+    };
 
-  let rows = await DictModel.destroy(
-    {
-      where: where,
-    },
-    { raw: true }
-  );
+    let rows = await DictModel.destroy(
+      {
+        where: where,
+      },
+      { raw: true }
+    );
 
-  return HttpResult.success();
+    return HttpResult.success();
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
+  }
 }
 
 /**
@@ -83,40 +101,45 @@ async function dictPageList({
   dict_code = "",
   _jwtinfo,
 }) {
-  let filter = {
-    create_by: _jwtinfo.id,
-  };
-  let order = [["create_time", "DESC"]];
+  try {
+    let filter = {
+      create_by: _jwtinfo.id,
+    };
+    let order = [["create_time", "DESC"]];
 
-  if (dict_name) {
-    Object.assign(filter, {
-      dict_name: {
-        [Op.like]: `%${dict_name}%`,
+    if (dict_name) {
+      Object.assign(filter, {
+        dict_name: {
+          [Op.like]: `%${dict_name}%`,
+        },
+      });
+    }
+    if (dict_code) {
+      Object.assign(filter, {
+        dict_code: {
+          [Op.like]: `%${dict_code}%`,
+        },
+      });
+    }
+
+    let { count, rows } = await DictModel.findAndCountAll({
+      order,
+      where: filter,
+      limit: page_size,
+      offset: (page_no - 1) * page_size,
+      raw: true,
+    });
+    return HttpResult.success({
+      result: {
+        page: page_no,
+        count,
+        records: rows,
       },
     });
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
   }
-  if (dict_code) {
-    Object.assign(filter, {
-      dict_code: {
-        [Op.like]: `%${dict_code}%`,
-      },
-    });
-  }
-
-  let { count, rows } = await DictModel.findAndCountAll({
-    order,
-    where: filter,
-    limit: page_size,
-    offset: (page_no - 1) * page_size,
-    raw: true,
-  });
-  return HttpResult.success({
-    result: {
-      page: page_no,
-      count,
-      records: rows,
-    },
-  });
 }
 
 /**
@@ -132,21 +155,28 @@ async function addDictItem({
   sort_order = null,
   _jwtinfo,
 }) {
-  let date = Date.now();
-  let dictItem = await DictItemModel.create({
-    id: uuid(32),
-    dict_id,
-    item_text,
-    item_value,
-    description,
-    sort_order,
-    status: "1",
-    create_by: _jwtinfo.id,
-    create_time: date,
-    update_by: _jwtinfo.id,
-    update_time: date,
-  });
-  return HttpResult.success();
+  try {
+    let date = Date.now();
+    let dictItem = await DictItemModel.create({
+      id: uuid(32),
+      dict_id,
+      item_text,
+      item_value,
+      description,
+      sort_order,
+      status: "1",
+      create_by: _jwtinfo.id,
+      create_time: date,
+      update_by: _jwtinfo.id,
+      update_time: date,
+    });
+    return HttpResult.success({
+      result: dictItem.get({ plain: true }),
+    });
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
+  }
 }
 
 /**
@@ -162,37 +192,42 @@ async function editDictItem({
   sort_order = null,
   status = "1",
 }) {
-  let values = {};
+  try {
+    let values = {};
 
-  if (item_text) {
-    Object.assign(values, { item_text });
-  }
-  if (item_value) {
-    Object.assign(values, { item_value });
-  }
-  if (description) {
-    Object.assign(values, { description });
-  }
-  if (sort_order) {
-    Object.assign(values, { sort_order });
-  }
-  if (status) {
-    Object.assign(values, { status });
-  }
+    if (item_text) {
+      Object.assign(values, { item_text });
+    }
+    if (item_value) {
+      Object.assign(values, { item_value });
+    }
+    if (description) {
+      Object.assign(values, { description });
+    }
+    if (sort_order) {
+      Object.assign(values, { sort_order });
+    }
+    if (status) {
+      Object.assign(values, { status });
+    }
 
-  let where = {
-    id,
-  };
+    let where = {
+      id,
+    };
 
-  let rows = await DictItemModel.update(
-    values,
-    {
-      where: where,
-    },
-    { raw: true }
-  );
+    let rows = await DictItemModel.update(
+      values,
+      {
+        where: where,
+      },
+      { raw: true }
+    );
 
-  return HttpResult.success();
+    return HttpResult.success();
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
+  }
 }
 
 /**
@@ -201,18 +236,23 @@ async function editDictItem({
  * @returns
  */
 async function delDictItem({ id }) {
-  let where = {
-    id,
-  };
+  try {
+    let where = {
+      id,
+    };
 
-  await DictItemModel.destroy(
-    {
-      where: where,
-    },
-    { raw: true }
-  );
+    await DictItemModel.destroy(
+      {
+        where: where,
+      },
+      { raw: true }
+    );
 
-  return HttpResult.success();
+    return HttpResult.success();
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
+  }
 }
 
 /**
@@ -230,13 +270,12 @@ async function dictItemPageList({
 }) {
   let order = [["sort_order", "ASC"]];
 
-  try{
-
+  try {
     let filter = {
       dict_id,
       create_by: _jwtinfo.id,
     };
-  
+
     if (item_text) {
       Object.assign(filter, {
         item_text: {
@@ -251,7 +290,7 @@ async function dictItemPageList({
         },
       });
     }
-  
+
     let { count, rows } = await DictItemModel.findAndCountAll({
       order,
       where: filter,
@@ -266,10 +305,10 @@ async function dictItemPageList({
         records: rows,
       },
     });
-  }catch(err){
-    console.error(err.message)
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
   }
-  return HttpResult.fail()
 }
 
 module.exports = {
