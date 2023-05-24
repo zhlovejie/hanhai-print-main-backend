@@ -1,7 +1,6 @@
 const db_models = require("./db");
-const { uuid } = require("../utils");
-const { Op } = require("sequelize");
-const { DictModel, DictItemModel } = db_models;
+const { uuid, isEmpty, isNumber } = require("../utils");
+const { DictModel, DictItemModel, Op, sequelize } = db_models;
 const HttpResult = require("../vo/HttpResult");
 const logger = require("../vo/Logger");
 /**
@@ -9,22 +8,20 @@ const logger = require("../vo/Logger");
  * @param {*} param0
  * @returns
  */
-async function addDict({ dict_name, dict_code, description, _jwtinfo }) {
+async function addDict({ dict_name, description = null, _jwtinfo }) {
   try {
-    let date = Date.now();
-    let dict = await DictModel.create({
+    if (isEmpty(dict_name) || !(_jwtinfo && _jwtinfo.id)) {
+      return HttpResult.fail();
+    }
+    let dictInstance = await DictModel.create({
       id: uuid(32),
       dict_name,
-      dict_code,
       description,
-      del_flag: "0",
       create_by: _jwtinfo.id,
-      create_time: date,
-      update_by: _jwtinfo.id,
-      update_time: date,
+      create_time: Date.now(),
     });
     return HttpResult.success({
-      result: dict.get({ plain: true }),
+      result: dictInstance.get({ raw: true }),
     });
   } catch (err) {
     logger.error(err);
@@ -37,26 +34,43 @@ async function addDict({ dict_name, dict_code, description, _jwtinfo }) {
  * @param {*} param0
  * @returns
  */
-async function editDict({ id, dict_name, dict_code, description }) {
+async function editDict({ id, dict_name, description = null }) {
   try {
-    let values = {
-      dict_name,
-      dict_code,
-      description,
-    };
+    if (isEmpty(dict_name) || isEmpty(id)) {
+      return HttpResult.fail();
+    }
+
+    let values = {};
+    if (!isEmpty(dict_name)) {
+      Object.assign(values, {
+        dict_name,
+      });
+    }
+    if (!isEmpty(description)) {
+      Object.assign(values, {
+        description,
+      });
+    }
 
     let where = {
       id,
     };
-
-    await DictModel.update(
-      values,
+    let dictInstance = await DictModel.findOne(
       {
         where: where,
       },
       { raw: true }
     );
 
+    if (!dictInstance) {
+      logger.error({
+        message: `editDict 未找到 ${where} 数据`,
+      });
+      return HttpResult.fail();
+    }
+    dictInstance.set(values);
+
+    await dictInstance.save();
     return HttpResult.success();
   } catch (err) {
     logger.error(err);
@@ -71,16 +85,42 @@ async function editDict({ id, dict_name, dict_code, description }) {
  */
 async function delDict({ id }) {
   try {
+    if (isEmpty(id)) {
+      return HttpResult.fail();
+    }
     let where = {
       id,
     };
 
-    let rows = await DictModel.destroy(
+    let dictInstance = await DictModel.findOne(
       {
         where: where,
       },
       { raw: true }
     );
+
+    if (!dictInstance) {
+      logger.error({
+        message: `delDict 未找到 ${where} 数据`,
+      });
+      return HttpResult.fail();
+    }
+
+    let dictItemWhere = {
+      dict_id: dictInstance.id,
+    };
+
+    await sequelize.transaction(async (t) => {
+      await DictModel.destroy({
+        where: where,
+        transaction: t,
+      });
+
+      await DictItemModel.destroy({
+        where: dictItemWhere,
+        transaction: t,
+      });
+    });
 
     return HttpResult.success();
   } catch (err) {
@@ -98,10 +138,32 @@ async function dictPageList({
   page_no = 1,
   page_size = 10,
   dict_name = "",
-  dict_code = "",
   _jwtinfo,
 }) {
   try {
+    if (!(_jwtinfo && _jwtinfo.id)) {
+      return HttpResult.fail({
+        message: "dictPageList _jwtinfo 缺失",
+      });
+    }
+    let _page_no = page_no,
+      _page_size = page_size;
+
+    if (!isNumber(_page_no)) {
+      _page_no = 1;
+    }
+
+    if (!isNumber(_page_size)) {
+      _page_size = 10;
+    }
+
+    _page_no = Number(_page_no);
+    _page_size = Number(_page_size);
+
+    if (_page_size > 50) {
+      _page_size = 50;
+    }
+
     let filter = {
       create_by: _jwtinfo.id,
     };
@@ -114,24 +176,17 @@ async function dictPageList({
         },
       });
     }
-    if (dict_code) {
-      Object.assign(filter, {
-        dict_code: {
-          [Op.like]: `%${dict_code}%`,
-        },
-      });
-    }
 
     let { count, rows } = await DictModel.findAndCountAll({
       order,
       where: filter,
-      limit: page_size,
-      offset: (page_no - 1) * page_size,
+      limit: _page_size,
+      offset: (_page_no - 1) * _page_size,
       raw: true,
     });
     return HttpResult.success({
       result: {
-        page: page_no,
+        page: _page_no,
         count,
         records: rows,
       },
@@ -150,28 +205,23 @@ async function dictPageList({
 async function addDictItem({
   dict_id,
   item_text,
-  item_value,
-  description = "",
+  description = null,
   sort_order = null,
-  _jwtinfo,
 }) {
   try {
-    let date = Date.now();
-    let dictItem = await DictItemModel.create({
+    if (isEmpty(dict_id) || isEmpty(item_text)) {
+      return HttpResult.fail();
+    }
+
+    let dictItemInstance = await DictItemModel.create({
       id: uuid(32),
       dict_id,
       item_text,
-      item_value,
       description,
       sort_order,
-      status: "1",
-      create_by: _jwtinfo.id,
-      create_time: date,
-      update_by: _jwtinfo.id,
-      update_time: date,
     });
     return HttpResult.success({
-      result: dictItem.get({ plain: true }),
+      result: dictItemInstance.get({ raw: true }),
     });
   } catch (err) {
     logger.error(err);
@@ -187,41 +237,45 @@ async function addDictItem({
 async function editDictItem({
   id,
   item_text,
-  item_value,
-  description,
+  description = null,
   sort_order = null,
-  status = "1",
 }) {
   try {
+    if (isEmpty(id) || isEmpty(item_text)) {
+      return HttpResult.fail();
+    }
+
     let values = {};
 
-    if (item_text) {
+    if (!isEmpty(item_text)) {
       Object.assign(values, { item_text });
     }
-    if (item_value) {
-      Object.assign(values, { item_value });
-    }
-    if (description) {
+    if (!isEmpty(description)) {
       Object.assign(values, { description });
     }
-    if (sort_order) {
+    if (isNumber(sort_order)) {
       Object.assign(values, { sort_order });
-    }
-    if (status) {
-      Object.assign(values, { status });
     }
 
     let where = {
       id,
     };
 
-    let rows = await DictItemModel.update(
-      values,
+    let dictItemInstance = await DictItemModel.findOne(
       {
         where: where,
       },
       { raw: true }
     );
+
+    if (!dictItemInstance) {
+      logger.error({
+        message: `editDictItem 未找到 ${where} 数据`,
+      });
+      return HttpResult.fail();
+    }
+    dictItemInstance.set(values);
+    await dictItemInstance.save();
 
     return HttpResult.success();
   } catch (err) {
@@ -237,17 +291,30 @@ async function editDictItem({
  */
 async function delDictItem({ id }) {
   try {
+    if (isEmpty(id)) {
+      return HttpResult.fail();
+    }
     let where = {
       id,
     };
 
-    await DictItemModel.destroy(
+    let dictItemInstance = await DictItemModel.findOne(
       {
         where: where,
       },
       { raw: true }
     );
 
+    if (!dictItemInstance) {
+      logger.error({
+        message: `delDictItem 未找到 数据`,
+        params: where,
+      });
+      return HttpResult.fail();
+    }
+    await DictItemModel.destroy({
+      where,
+    });
     return HttpResult.success();
   } catch (err) {
     logger.error(err);
@@ -264,16 +331,34 @@ async function dictItemPageList({
   page_no = 1,
   page_size = 10,
   item_text = "",
-  item_value = "",
   dict_id,
-  _jwtinfo,
 }) {
-  let order = [["sort_order", "ASC"]];
-
   try {
+    if (isEmpty(dict_id)) {
+      return HttpResult.fail();
+    }
+
+    let _page_no = page_no,
+      _page_size = page_size;
+
+    if (!isNumber(_page_no)) {
+      _page_no = 1;
+    }
+
+    if (!isNumber(_page_size)) {
+      _page_size = 10;
+    }
+
+    _page_no = Number(_page_no);
+    _page_size = Number(_page_size);
+
+    if (_page_size > 50) {
+      _page_size = 50;
+    }
+
+    let order = [["sort_order", "ASC"]];
     let filter = {
       dict_id,
-      create_by: _jwtinfo.id,
     };
 
     if (item_text) {
@@ -283,24 +368,17 @@ async function dictItemPageList({
         },
       });
     }
-    if (item_value) {
-      Object.assign(filter, {
-        item_value: {
-          [Op.like]: `%${item_value}%`,
-        },
-      });
-    }
 
     let { count, rows } = await DictItemModel.findAndCountAll({
       order,
       where: filter,
-      limit: page_size,
-      offset: (page_no - 1) * page_size,
+      limit: _page_size,
+      offset: (_page_no - 1) * _page_size,
       raw: true,
     });
     return HttpResult.success({
       result: {
-        page: page_no,
+        page: _page_no,
         count,
         records: rows,
       },

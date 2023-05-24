@@ -104,6 +104,10 @@ let UserModel = sequelize.define(
       type: DataTypes.TINYINT(1),
       allowNull: true,
     },
+    client_id: {
+      type: DataTypes.STRING(64),
+      allowNull: true,
+    },
   },
   {
     tableName: "sys_user",
@@ -127,14 +131,10 @@ let DictModel = sequelize.define(
     },
     dict_code: {
       type: DataTypes.STRING(100),
-      allowNull: false,
+      allowNull: true,
     },
     description: {
       type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    del_flag: {
-      type: DataTypes.TINYINT(1),
       allowNull: true,
     },
     create_by: {
@@ -144,15 +144,7 @@ let DictModel = sequelize.define(
     create_time: {
       type: DataTypes.DATE,
       allowNull: true,
-    },
-    update_by: {
-      type: DataTypes.STRING(32),
-      allowNull: true,
-    },
-    update_time: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
+    }
   },
   {
     tableName: "jimu_dict",
@@ -172,7 +164,6 @@ let DictItemModel = sequelize.define(
     },
     dict_id: {
       type: DataTypes.STRING(32),
-      primaryKey: true,
       allowNull: false,
       autoIncrement: false,
     },
@@ -182,7 +173,7 @@ let DictItemModel = sequelize.define(
     },
     item_value: {
       type: DataTypes.STRING(100),
-      allowNull: false,
+      allowNull: true,
     },
     description: {
       type: DataTypes.STRING(255),
@@ -191,27 +182,7 @@ let DictItemModel = sequelize.define(
     sort_order: {
       type: DataTypes.TINYINT(10),
       allowNull: true,
-    },
-    status: {
-      type: DataTypes.TINYINT(1),
-      allowNull: true,
-    },
-    create_by: {
-      type: DataTypes.STRING(32),
-      allowNull: true,
-    },
-    create_time: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    update_by: {
-      type: DataTypes.STRING(32),
-      allowNull: true,
-    },
-    update_time: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
+    }
   },
   {
     tableName: "jimu_dict_item",
@@ -224,4 +195,5 @@ module.exports = {
   DictModel,
   DictItemModel,
   Op,
+  sequelize
 };

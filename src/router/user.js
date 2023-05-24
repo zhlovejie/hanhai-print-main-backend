@@ -9,8 +9,7 @@ router.post("/sys/user/login", async function (req, res) {
     message: "/sys/user/login",
     params: req.body,
   });
-  let { username, password } = req.body;
-  let result = await bizUser.login({ username, password });
+  let result = await bizUser.login({ ...req.body });
   res.json(result);
   logger.info("end--------------------------------");
 });
@@ -19,7 +18,7 @@ router.get("/sys/user/baseinfo", async function (req, res) {
   logger.info("start--------------------------------");
   logger.info({
     message: "/sys/user/baseinfo",
-    params: req.body,
+    params: req.jwtinfo,
   });
   let result = await bizUser.getUserInfo(req.jwtinfo.id);
   res.json(result);
@@ -46,16 +45,7 @@ router.post("/sys/user/edit", async function (req, res) {
     message: "/sys/user/edit",
     params: req.body,
   });
-  const { id, realname, avatar, birthday, sex, email, phone } = req.body;
-  let result = await bizUser.editUser({
-    id,
-    realname,
-    avatar,
-    birthday,
-    sex,
-    email,
-    phone,
-  });
+  let result = await bizUser.editUser({ ...req.body, _jwtinfo: req.jwtinfo });
   res.json(result);
   logger.info("end--------------------------------");
 });

@@ -1,14 +1,14 @@
-const UserModel = require("../router/user");
+const UserModel = require("../db/user");
 
 async function testAddUser() {
   let user = {
-    username: "18752106129",
+    username: "王富贵",
     realname: "王富贵",
     password: "123456",
     birthday: "1987-10-26",
     sex: 1,
     phone: "18752106129",
-    user_identity: 4,
+    user_identity: 1,
   };
   let result = await UserModel.addUser(user);
   console.log(result);
@@ -16,7 +16,7 @@ async function testAddUser() {
 
 async function testEditUser() {
   let user = {
-    id: "kcnl7oomilt6b6j8j02k1ofoksgcs30a",
+    id: "fkp983i8qqlku7lgvjr7pclgg90i6to4",
     realname: "王富贵111",
     birthday: "1987-10-29",
     sex: 2,
@@ -27,7 +27,7 @@ async function testEditUser() {
 
 async function testDelUser() {
   let user = {
-    id: "6dan2nbto3nd537vktvj1apcnmtfd03g",
+    id: "fkp983i8qqlku7lgvjr7pclgg90i6to4",
   };
   let result = await UserModel.delUserBySoft(user);
   console.log(result);
@@ -38,14 +38,14 @@ async function testUserPageList() {
   console.log(result);
 }
 
-function test() {
-  // testAddUser()
+async function test() {
+  // await testAddUser()
 
   // testEditUser()
 
-  // testDelUser()
+  testDelUser()
 
-  testUserPageList();
+  // await testUserPageList();
 }
 
 test();

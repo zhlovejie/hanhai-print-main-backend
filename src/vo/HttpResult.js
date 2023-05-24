@@ -23,7 +23,7 @@ class HttpResult {
   }
 
   /**
-   * 成功返回
+   * 失败返回
    * @param {*} param0
    * @returns
    */

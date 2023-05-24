@@ -33,7 +33,7 @@ const logger = winston.createLogger({
     winston.format.splat(),
     winston.format.json()
   ),
-  defaultMeta: { service: "print-app" },
+  // defaultMeta: { service: "print-app" },
   transports: [
     //
     // - Write to all logs with level `info` and below to `quick-start-combined.log`.

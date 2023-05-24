@@ -39,32 +39,4 @@ router.post(
   }
 );
 
-/**
- * 查看图片
- */
-router.get("/static/uploads/:fileName", function (req, res, next) {
-  logger.info("start--------------------------------");
-  logger.info({
-    message: "/static/uploads/:fileName",
-    params: req.params,
-  });
-
-  try {
-    let fileName = req.params.fileName;
-    let filePath = path.join(config.uploadPath, fileName);
-    let fileType = path.extname(fileName).slice(1);
-
-    if (fs.existsSync(filePath)) {
-      res.type(fileType);
-      res.sendFile(filePath);
-    } else {
-      res.status(403).send("无权查看此文件");
-    }
-  } catch (err) {
-    logger.error(err);
-    res.json(HttpResult.fail({ message: err.message }));
-  }
-  logger.info("end--------------------------------");
-});
-
 module.exports = router;

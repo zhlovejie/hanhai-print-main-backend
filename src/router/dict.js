@@ -9,7 +9,7 @@ router.post("/sys/dict/add", async function (req, res, next) {
     message: "/sys/dict/add",
     params: req.body,
   });
-  let { dict_name, dict_code, description } = req.body;
+  let { dict_name, description } = req.body;
   let result = await bizDict.addDict({
     dict_name,
     dict_code,
@@ -26,14 +26,7 @@ router.post("/sys/dict/edit", async function (req, res, next) {
     message: "/sys/dict/edit",
     params: req.body,
   });
-  let { id, dict_name, dict_code, description } = req.body;
-  let result = await bizDict.editDict({
-    id,
-    dict_name,
-    dict_code,
-    description,
-    _jwtinfo: req.jwtinfo,
-  });
+  let result = await bizDict.editDict({ ...req.body });
   res.json(result);
   logger.info("end--------------------------------");
 });
@@ -44,8 +37,7 @@ router.post("/sys/dict/del/:id", async function (req, res, next) {
     message: "/sys/dict/del/:id",
     params: req.params,
   });
-  let id = req.params.id;
-  let result = await bizDict.delDict({ id });
+  let result = await bizDict.delDict({ ...req.params });
   res.json(result);
   logger.info("end--------------------------------");
 });
@@ -57,14 +49,8 @@ router.get("/sys/dict/pageList", async function (req, res, next) {
     params: req.query,
   });
 
-  let { page_no, page_size, dict_name, dict_code } = req.query;
-  let _page_no = Number(page_no) || 1;
-  let _page_size = Number(page_size) || 10;
   let result = await bizDict.dictPageList({
-    page_no: _page_no,
-    page_size: _page_size,
-    dict_name,
-    dict_code,
+    ...req.query,
     _jwtinfo: req.jwtinfo,
   });
   res.json(result);
@@ -77,13 +63,8 @@ router.post("/sys/dict/item/add", async function (req, res, next) {
     message: "/sys/dict/item/add",
     params: req.body,
   });
-  let { dict_id, item_text, item_value, description, sort_order } = req.body;
   let result = await bizDict.addDictItem({
-    dict_id,
-    item_text,
-    item_value,
-    description,
-    sort_order,
+    ...req.body,
     _jwtinfo: req.jwtinfo,
   });
   res.json(result);
@@ -96,14 +77,8 @@ router.post("/sys/dict/item/edit", async function (req, res, next) {
     message: "/sys/dict/item/edit",
     params: req.body,
   });
-  let { id, item_text, item_value, description, sort_order, status } = req.body;
   let result = await bizDict.editDictItem({
-    id,
-    item_text,
-    item_value,
-    description,
-    sort_order,
-    status,
+    ...req.body,
     _jwtinfo: req.jwtinfo,
   });
   res.json(result);
@@ -117,8 +92,7 @@ router.post("/sys/dict/item/del/:id", async function (req, res, next) {
     params: req.params,
   });
 
-  let id = req.params.id;
-  let result = await bizDict.delDictItem({ id });
+  let result = await bizDict.delDictItem({ ...req.params });
   res.json(result);
   logger.info("end--------------------------------");
 });
@@ -129,15 +103,8 @@ router.get("/sys/dict/item/pageList", async function (req, res, next) {
     message: "/sys/dict/item/pageList",
     params: req.query,
   });
-  let { page_no, page_size, dict_id, item_text, item_value } = req.query;
-  let _page_no = Number(page_no) || 1;
-  let _page_size = Number(page_size) || 10;
   let result = await bizDict.dictItemPageList({
-    page_no: _page_no,
-    page_size: _page_size,
-    item_text,
-    item_value,
-    dict_id,
+    ...req.query,
     _jwtinfo: req.jwtinfo,
   });
   res.json(result);
