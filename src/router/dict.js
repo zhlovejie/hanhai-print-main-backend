@@ -9,11 +9,8 @@ router.post("/sys/dict/add", async function (req, res, next) {
     message: "/sys/dict/add",
     params: req.body,
   });
-  let { dict_name, description } = req.body;
   let result = await bizDict.addDict({
-    dict_name,
-    dict_code,
-    description,
+    ...req.body,
     _jwtinfo: req.jwtinfo,
   });
   res.json(result);
