@@ -38,6 +38,16 @@ async function login({ username, password }) {
       return HttpResult.fail({ message: "用户名或密码错误" });
     }
 
+    //状态(1-正常,2-冻结)
+    if (+user.status === 2) {
+      return HttpResult.fail({ message: "该账号已冻结，请联系管理员！" });
+    }
+    //删除状态(0-正常,1-已删除)
+    if (+user.del_flag === 1) {
+      return HttpResult.fail({ message: "该账号已暂停使用，请联系管理员！" });
+    }
+
+    //token有效期为2小时
     let token = createToken(user, 60 * 60 * 2);
 
     return HttpResult.success({
@@ -58,8 +68,8 @@ async function loginout(token) {
 
 async function getUserInfo(id) {
   try {
-    if(isEmpty(id)){
-      return HttpResult.fail()
+    if (isEmpty(id)) {
+      return HttpResult.fail();
     }
     let attributes = {
       // 排除一些属性
@@ -190,7 +200,7 @@ async function addUser({
 
     if (user) {
       return HttpResult.fail({
-        message: `登录账号重复`,
+        message: `账号重复`,
       });
     }
 
@@ -357,8 +367,8 @@ async function delUserBySoft({ id }) {
 
 async function getUserPageList({
   username = "",
-  status = "0",
-  del_flag = "1",
+  status = null,
+  del_flag = null,
   page_no = 1,
   page_size = 10,
 }) {
