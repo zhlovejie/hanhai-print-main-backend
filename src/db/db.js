@@ -108,6 +108,14 @@ let UserModel = sequelize.define(
       type: DataTypes.STRING(64),
       allowNull: true,
     },
+    trial_times: {
+      type: DataTypes.SMALLINT(5),
+      allowNull: true,
+    },
+    trial_used: {
+      type: DataTypes.SMALLINT(5),
+      allowNull: true,
+    },
   },
   {
     tableName: "sys_user",
@@ -190,10 +198,47 @@ let DictItemModel = sequelize.define(
   }
 );
 
+
+/**打印记录表 */
+let PrintLogModel = sequelize.define(
+  "Dict",
+  {
+    id: {
+      type: DataTypes.STRING(32),
+      primaryKey: true,
+      allowNull: false,
+      autoIncrement: false,
+    },
+    user_id: {
+      type: DataTypes.STRING(32),
+      allowNull: false,
+      autoIncrement: false,
+    },
+    print_json: {
+      type: DataTypes.TEXT(),
+      allowNull: true,
+    },
+    create_by: {
+      type: DataTypes.STRING(32),
+      allowNull: true,
+    },
+    create_time: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    }
+  },
+  {
+    tableName: "sys_print_log",
+    timestamps: false,
+  }
+);
+
+
 module.exports = {
   UserModel,
   DictModel,
   DictItemModel,
+  PrintLogModel,
   Op,
   sequelize
 };

@@ -24,7 +24,9 @@ const upload = multer({
 });
 
 module.exports = {
-  cors:cors(),
+  cors:cors({
+    maxAge:3600
+  }),
   jsonParser,
   urlencodedParser,
   tokenChecker,

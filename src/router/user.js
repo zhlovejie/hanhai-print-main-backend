@@ -50,4 +50,29 @@ router.post("/sys/user/edit", async function (req, res) {
   logger.info("end--------------------------------");
 });
 
+router.post("/sys/user/add", async function (req, res) {
+  logger.info("start--------------------------------");
+  logger.info({
+    message: "/sys/user/add",
+    params: req.body,
+  });
+  let result = await bizUser.addUser({ ...req.body, _jwtinfo: req.jwtinfo });
+  res.json(result);
+  logger.info("end--------------------------------");
+});
+
+router.get("/sys/user/pagelist", async function (req, res) {
+  logger.info("start--------------------------------");
+  logger.info({
+    message: "/sys/user/pagelist",
+    params: req.query,
+  });
+  let result = await bizUser.getUserPageList({
+    ...req.query,
+    _jwtinfo: req.jwtinfo,
+  });
+  res.json(result);
+  logger.info("end--------------------------------");
+});
+
 module.exports = router;

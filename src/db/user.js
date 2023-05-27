@@ -1,4 +1,5 @@
 const db_models = require("./db");
+const { UserModel, Op } = db_models;
 const {
   createToken,
   md5,
@@ -9,7 +10,6 @@ const {
 } = require("../utils");
 const logger = require("../vo/Logger");
 const HttpResult = require("../vo/HttpResult");
-const UserModel = db_models.UserModel;
 
 async function login({ username, password }) {
   try {
@@ -46,6 +46,24 @@ async function login({ username, password }) {
     if (+user.del_flag === 1) {
       return HttpResult.fail({ message: "该账号已暂停使用，请联系管理员！" });
     }
+
+    //试用客户
+    // if(+user.user_identity === 4){
+    //   if(isNumber(user.trial_times) && isNumber(user.trial_used)){
+    //     let trial_times = Number(user.trial_times)
+    //     let trial_used = Number(user.trial_used)
+    //     if(trial_used >= trial_times){
+    //       return HttpResult.fail({ message: "该账号已暂停使用，请联系管理员！" });
+    //     }
+    //   }else{
+    //     logger.warn({
+    //       message:`试用客户试用次数和已试用次数异常`,
+    //       params:{
+    //         user
+    //       }
+    //     })
+    //   }
+    // }
 
     //token有效期为2小时
     let token = createToken(user, 60 * 60 * 2);
@@ -156,6 +174,7 @@ async function addUser({
   user_identity,
   del_flag = "0",
   status = "1",
+  trial_times = null,
   _jwtinfo,
 }) {
   try {
@@ -191,6 +210,9 @@ async function addUser({
     }
     if (!isEmpty(user_identity)) {
       Object.assign(values, { user_identity });
+    }
+    if (!isEmpty(trial_times) && isNumber(trial_times)) {
+      Object.assign(values, { trial_times });
     }
 
     let user = await UserModel.findOne({
@@ -415,7 +437,10 @@ async function getUserPageList({
       });
     }
 
+    let order = [["create_time", "DESC"]];
+
     let { count, rows } = await UserModel.findAndCountAll({
+      order,
       where: filter,
       limit: _page_size,
       offset: (_page_no - 1) * _page_size,
