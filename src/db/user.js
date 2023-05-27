@@ -460,6 +460,118 @@ async function getUserPageList({
   }
 }
 
+/**
+ * 修改自己的密码
+ * @param {*} param0
+ * @returns
+ */
+async function updatePasswordBySelf({ password, newpassword, _jwtinfo }) {
+  try {
+    logger.info({
+      message: "客户自己修改密码",
+    });
+    if (isEmpty(password) || isEmpty(newpassword)) {
+      return HttpResult.fail();
+    }
+
+    let where = {
+      id: _jwtinfo.id,
+    };
+
+    let userInstance = await UserModel.findOne(
+      {
+        where: where,
+      },
+      { raw: true }
+    );
+    if (!userInstance) {
+      return HttpResult.fail();
+    }
+
+    // 验证密码是否正确
+    if (md5(password, userInstance.salt) !== userInstance.password) {
+      return HttpResult.fail();
+    }
+
+    let values = {};
+
+    let salt = getSalt();
+    let _password = md5(newpassword, salt);
+
+    Object.assign(values, {
+      salt,
+      password: _password,
+      update_by: _jwtinfo.id,
+      update_time: Date.now(),
+    });
+
+    userInstance.set(values);
+    await userInstance.save();
+    return HttpResult.success({
+      message: `密码设置成功，密码为：${newpassword} 。请妥善保管！`,
+    });
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
+  }
+}
+
+/**
+ * 管理员修改客户密码
+ * @param {*} param0
+ * @returns
+ */
+async function updatePasswordByAdmin({ userid, newpassword, _jwtinfo }) {
+  try {
+    logger.info({
+      message: "管理员修改客户密码",
+    });
+    if (isEmpty(newpassword) || isEmpty(userid)) {
+      return HttpResult.fail();
+    }
+
+    // 非管理权限账号 拒绝
+    if (+_jwtinfo.user_identity !== 1) {
+      return HttpResult.fail();
+    }
+
+    let where = {
+      id: userid,
+    };
+
+    let userInstance = await UserModel.findOne(
+      {
+        where: where,
+      },
+      { raw: true }
+    );
+    if (!userInstance) {
+      return HttpResult.fail();
+    }
+
+    let values = {};
+
+    let salt = getSalt();
+    let _password = md5(newpassword, salt);
+
+    Object.assign(values, {
+      salt,
+      password: _password,
+      update_by: _jwtinfo.id,
+      update_time: Date.now(),
+    });
+
+    userInstance.set(values);
+    await userInstance.save();
+    return HttpResult.success({
+      message: `密码设置成功，密码为：${newpassword} 。请妥善保管！`,
+    });
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
+  }
+}
+
 module.exports = {
   login,
   loginout,
@@ -470,4 +582,6 @@ module.exports = {
   delUser,
   delUserBySoft,
   getUserPageList,
+  updatePasswordBySelf,
+  updatePasswordByAdmin,
 };
