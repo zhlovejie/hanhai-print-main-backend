@@ -572,6 +572,56 @@ async function updatePasswordByAdmin({ userid, newpassword, _jwtinfo }) {
   }
 }
 
+/**
+ * 试用客户更新打印次数
+ * @param {*} param0
+ * @returns
+ */
+async function udpateTrialUsed({ _jwtinfo }) {
+  try {
+    let where = {
+      id: _jwtinfo.id,
+    };
+
+    let userInstance = await UserModel.findOne(
+      {
+        where: where,
+      },
+      { raw: true }
+    );
+    if (!userInstance) {
+      return HttpResult.fail();
+    }
+    // 非试用客户
+    if (+userInstance.user_identity !== 4) {
+      return HttpResult.fail();
+    }
+
+    let values = {};
+    Object.assign(values, {
+      update_by: _jwtinfo.id,
+      update_time: Date.now(),
+    });
+
+    if (!isNumber(userInstance.trial_used)) {
+      Object.assign(values, {
+        trial_used: 1,
+      });
+    } else {
+      Object.assign(values, {
+        trial_used: Number(userInstance.trial_used) + 1,
+      });
+    }
+
+    userInstance.set(values);
+    await userInstance.save();
+    return HttpResult.success();
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
+  }
+}
+
 module.exports = {
   login,
   loginout,
@@ -584,4 +634,5 @@ module.exports = {
   getUserPageList,
   updatePasswordBySelf,
   updatePasswordByAdmin,
+  udpateTrialUsed,
 };

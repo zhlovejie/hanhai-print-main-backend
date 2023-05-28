@@ -75,15 +75,27 @@ router.get("/sys/user/pagelist", async function (req, res) {
   logger.info("end--------------------------------");
 });
 
-
 router.post("/sys/user/resetpassword", async function (req, res) {
   logger.info("start--------------------------------");
   logger.info({
     message: "/sys/user/resetpassword",
     params: req.body,
   });
-  let _api = req.body.userid ? bizUser.updatePasswordByAdmin : bizUser.updatePasswordBySelf
+  let _api = req.body.userid
+    ? bizUser.updatePasswordByAdmin
+    : bizUser.updatePasswordBySelf;
   let result = await _api({ ...req.body, _jwtinfo: req.jwtinfo });
+  res.json(result);
+  logger.info("end--------------------------------");
+});
+
+router.post("/sys/user/udpateTrialUsed", async function (req, res) {
+  logger.info("start--------------------------------");
+  logger.info({
+    message: "/sys/user/udpateTrialUsed",
+    params: req.body,
+  });
+  let result = await bizUser.udpateTrialUsed({ _jwtinfo: req.jwtinfo });
   res.json(result);
   logger.info("end--------------------------------");
 });
