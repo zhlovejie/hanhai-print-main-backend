@@ -100,4 +100,15 @@ router.post("/sys/user/udpateTrialUsed", async function (req, res) {
   logger.info("end--------------------------------");
 });
 
+router.post("/sys/user/checkTrial", async function (req, res) {
+  logger.info("start--------------------------------");
+  logger.info({
+    message: "/sys/user/checkTrial",
+    params: req.body,
+  });
+  let result = await bizUser.checkTrial({ _jwtinfo: req.jwtinfo });
+  res.json(result);
+  logger.info("end--------------------------------");
+});
+
 module.exports = router;

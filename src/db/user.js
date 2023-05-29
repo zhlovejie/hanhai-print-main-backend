@@ -622,6 +622,54 @@ async function udpateTrialUsed({ _jwtinfo }) {
   }
 }
 
+/**
+ * 试用客户打印次数是否用完
+ * @param {*} param0
+ * @returns
+ */
+async function checkTrial({ _jwtinfo }) {
+  try {
+    let where = {
+      id: _jwtinfo.id,
+    };
+
+    let userInstance = await UserModel.findOne(
+      {
+        where: where,
+      },
+      { raw: true }
+    );
+    if (!userInstance) {
+      return HttpResult.fail();
+    }
+    // 非试用客户
+    if (+userInstance.user_identity !== 4) {
+      return HttpResult.fail();
+    }
+
+    if (!isNumber(userInstance.trial_used)) {
+      return HttpResult.fail();
+    }
+
+    if (
+      isNumber(userInstance.trial_used) &&
+      isNumber(userInstance.trial_times) &&
+      Number(userInstance.trial_used) >= Number(userInstance.trial_times)
+    ) {
+      return HttpResult.success({
+        result: { end: 1 },
+      });
+    }
+
+    return HttpResult.success({
+      result: { end: 0 },
+    });
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
+  }
+}
+
 module.exports = {
   login,
   loginout,
@@ -635,4 +683,5 @@ module.exports = {
   updatePasswordBySelf,
   updatePasswordByAdmin,
   udpateTrialUsed,
+  checkTrial
 };
