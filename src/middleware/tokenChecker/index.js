@@ -23,7 +23,11 @@ async function tokenChecker(req, res, next) {
     logger.warn({
       message: `请求 ${req.path} 被拦截.`,
     });
-    res.json(HttpResult.jwtfail());
+    res.json(
+      HttpResult.jwtfail({
+        message: "无效请求",
+      })
+    );
     return;
   }
   let tokenResult = await verifyToken(token);

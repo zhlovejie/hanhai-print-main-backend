@@ -50,7 +50,7 @@ class HttpResult {
     let result = Object.assign(
       {
         code: HttpResultCode.fail,
-        message: "失败",
+        message: "token失效",
         result: {},
         timestamp: Date.now(),
       },

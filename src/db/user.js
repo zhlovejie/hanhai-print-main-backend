@@ -260,6 +260,8 @@ async function editUser({
   user_identity = null,
   del_flag = null,
   status = null,
+  trial_times = null,
+  trial_used = null,
   _jwtinfo,
 }) {
   try {
@@ -295,6 +297,14 @@ async function editUser({
     }
     if (isNumber(status)) {
       Object.assign(values, { status });
+    }
+
+    if (!isEmpty(trial_times) && isNumber(trial_times)) {
+      Object.assign(values, { trial_times });
+    }
+
+    if (!isEmpty(trial_used) && isNumber(trial_used)) {
+      Object.assign(values, { trial_used });
     }
 
     Object.assign(values, {
@@ -683,5 +693,5 @@ module.exports = {
   updatePasswordBySelf,
   updatePasswordByAdmin,
   udpateTrialUsed,
-  checkTrial
+  checkTrial,
 };

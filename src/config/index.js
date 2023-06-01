@@ -6,8 +6,8 @@ module.exports = {
   //数据库相关
   db: {
     database: "hanhai-print",
-    username: "root",
-    password: ")Y:]AI3:*?P1Mx^K@JWq#<[w^S!R%O^%",
+    username: "hanhai_print_db_base",
+    password: ")Y:]AI3:*?P1Mx^K@ZWq#<[w^S!R%O^%",
     host: "81.68.204.177",
     dialect: "mysql",
   },
