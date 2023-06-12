@@ -3,6 +3,8 @@ const { uuid, isEmpty, isNumber } = require("../utils");
 const { DictModel, DictItemModel, Op, sequelize } = db_models;
 const HttpResult = require("../vo/HttpResult");
 const logger = require("../vo/Logger");
+const nodepath = require("path");
+const xlsx = require("node-xlsx");
 /**
  * 数据字典新增
  * @param {*} param0
@@ -389,6 +391,83 @@ async function dictItemPageList({
   }
 }
 
+/**
+ * 批量导入字典， 先创建一条字典，zai
+ * @param {*} param0
+ * @returns
+ */
+async function dictImportByExcel({ file, _jwtinfo }) {
+  try {
+    let maxFileSize = 1024 * 1024 * 5;
+    let { filename, path, size } = file;
+    let extname = nodepath.extname(String(filename)).trim().toLowerCase();
+    let whiteList = [".xlsx", ".xls"];
+    if (!whiteList.includes(extname)) {
+      return HttpResult.fail({
+        message: "不支持的文件类型",
+      });
+    }
+    if (size > maxFileSize) {
+      return HttpResult.fail({
+        message: "不支持文件大小超过5M的文件",
+      });
+    }
+
+    const workSheets = xlsx.parse(path);
+    if (!(Array.isArray(workSheets) && workSheets.length > 0)) {
+      return HttpResult.fail({
+        message: "sheets不存在",
+      });
+    }
+
+    let sheetOne = workSheets[0];
+    // let sheetName = sheetOne.name
+    if (!(Array.isArray(sheetOne.data) && sheetOne.data.length > 0)) {
+      return HttpResult.fail({
+        message: "没有需要导入的数据",
+      });
+    }
+    let sheetHeader = sheetOne.data[0];
+
+    let dict_id = uuid(32);
+    let dictItemList = [];
+    for (let i = 1, len = sheetOne.data.length; i < len; i++) {
+      let cell = sheetOne.data[i][0];
+      dictItemList.push({
+        id: uuid(32),
+        dict_id,
+        item_text: cell,
+        description: cell,
+        sort_order: i,
+      });
+    }
+
+    await sequelize.transaction(async (t) => {
+      await DictModel.create(
+        {
+          id: dict_id,
+          dict_name: sheetHeader[0],
+          description: sheetHeader[0],
+          create_by: _jwtinfo.id,
+          create_time: Date.now(),
+        },
+        {
+          transaction: t,
+        }
+      );
+
+      await DictItemModel.bulkCreate(...dictItemList, {
+        transaction: t,
+      });
+    });
+
+    return HttpResult.success();
+  } catch (err) {
+    logger.error(err);
+    return HttpResult.fail({ message: err.message });
+  }
+}
+
 module.exports = {
   addDict,
   editDict,
@@ -398,4 +477,5 @@ module.exports = {
   editDictItem,
   delDictItem,
   dictItemPageList,
+  dictImportByExcel,
 };

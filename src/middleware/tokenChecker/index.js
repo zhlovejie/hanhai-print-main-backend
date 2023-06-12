@@ -2,7 +2,13 @@ const { verifyToken } = require("../../utils");
 const HttpResult = require("../../vo/HttpResult");
 const logger = require("../../vo/Logger");
 /**以下接口不校验token */
-const whiteList = ["/sys/user/login", "/sys/common/upload", "/static/uploads"];
+const whiteList = [
+  "/sys/user/login",
+  "/sys/common/upload",
+  "/static/uploads",
+  "/sys/user/captchaRandom",
+  "/sys/user/captchaValidate",
+];
 
 /**
  * 检测token

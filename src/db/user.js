@@ -10,7 +10,7 @@ const {
 } = require("../utils");
 const logger = require("../vo/Logger");
 const HttpResult = require("../vo/HttpResult");
-
+const { Captcha } = require("captcha-canvas");
 async function login({ username, password }) {
   try {
     if (isEmpty(username) || isEmpty(password)) {
@@ -680,6 +680,42 @@ async function checkTrial({ _jwtinfo }) {
   }
 }
 
+/**
+ * 生成验证码
+ * @returns {} {base64:图片base64码,salt:加密后的串}
+ */
+async function makeCaptcha() {
+  const captcha = new Captcha(); //create a captcha canvas of 100x300.
+  captcha.async = false; //Sync
+  captcha.addDecoy(); //Add decoy text on captcha canvas.
+  captcha.drawTrace({
+    opacity:0.5
+  }); //draw trace lines on captcha canvas.
+  captcha.drawCaptcha(); //draw captcha text on captcha canvas.
+  let text = `!@#${captcha.text.toUpperCase()}#@!`;
+  return HttpResult.success({
+    result: {
+      base64: Buffer.from(captcha.png).toString("base64"),
+      salt: md5(text),
+    },
+  });
+}
+
+/**
+ * 验证码校验
+ * @param {*} captchaText 验证码串
+ * @param {*} captchaSalt 验证码加密后的串
+ * @returns
+ */
+async function validateCaptcha({ captchaText, captchaSalt }) {
+  let text = String(captchaText).toUpperCase();
+  let saltText = `!@#${text}#@!`;
+
+  return HttpResult.success({
+    result: md5(saltText) === captchaSalt,
+  });
+}
+
 module.exports = {
   login,
   loginout,
@@ -694,4 +730,6 @@ module.exports = {
   updatePasswordByAdmin,
   udpateTrialUsed,
   checkTrial,
+  makeCaptcha,
+  validateCaptcha,
 };

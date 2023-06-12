@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
+const { upload } = require("../middleware");
 const logger = require("../vo/Logger");
 const bizDict = require("../db/dict");
+
 
 router.post("/sys/dict/add", async function (req, res, next) {
   logger.info("start--------------------------------");
@@ -107,5 +109,35 @@ router.get("/sys/dict/item/pageList", async function (req, res, next) {
   res.json(result);
   logger.info("end--------------------------------");
 });
+
+/**
+ * 字典导入
+ */
+router.post(
+  "/sys/dict/import",
+  [upload.array("file", 1)],
+  async function (req, res, next) {
+    logger.info("start--------------------------------");
+    logger.info({
+      message: "/sys/dict/import",
+      params: { files: req.files },
+    });
+    try {
+      if (Array.isArray(req.files) && req.files.length > 0) {
+        let result = await bizDict.dictImportByExcel({
+          file: req.files[0],
+          _jwtinfo: req.jwtinfo,
+        });
+        res.json(result);
+      } else {
+        res.json(HttpResult.fail());
+      }
+    } catch (err) {
+      logger.error(err);
+      res.json(HttpResult.fail({ message: err.message }));
+    }
+    logger.info("end--------------------------------");
+  }
+);
 
 module.exports = router;

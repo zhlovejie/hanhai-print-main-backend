@@ -111,4 +111,32 @@ router.post("/sys/user/checkTrial", async function (req, res) {
   logger.info("end--------------------------------");
 });
 
+/**
+ * 获取验证码
+ */
+router.post("/sys/user/captchaRandom", async function (req, res) {
+  logger.info("start--------------------------------");
+  logger.info({
+    message: "/sys/user/captcha",
+    params: req.body,
+  });
+  let result = await bizUser.makeCaptcha();
+  res.json(result);
+  logger.info("end--------------------------------");
+});
+
+/**
+ * 验证码校验
+ */
+router.post("/sys/user/captchaValidate", async function (req, res) {
+  logger.info("start--------------------------------");
+  logger.info({
+    message: "/sys/user/captcha",
+    params: req.body,
+  });
+  let result = await bizUser.validateCaptcha({ ...req.body });
+  res.json(result);
+  logger.info("end--------------------------------");
+});
+
 module.exports = router;
