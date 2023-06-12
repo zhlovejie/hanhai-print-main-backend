@@ -5,6 +5,7 @@ const logger = require("./vo/Logger");
 const app = express();
 
 app.use("/static/uploads/", express.static(config.uploadPath));
+app.use("/static/download/", express.static(config.downloadPath));
 
 routerInstall(app);
 

@@ -456,7 +456,7 @@ async function dictImportByExcel({ file, _jwtinfo }) {
         }
       );
 
-      await DictItemModel.bulkCreate(...dictItemList, {
+      await DictItemModel.bulkCreate(dictItemList, {
         transaction: t,
       });
     });

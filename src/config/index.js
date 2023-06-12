@@ -15,4 +15,6 @@ module.exports = {
   logPath: path.join(__dirname, "../../log"),
   //文件上传路径
   uploadPath: path.join(__dirname, "../../uploads"),
+  //文件下载路径
+  downloadPath: path.join(__dirname, "../../download"),
 };
