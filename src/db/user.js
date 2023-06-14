@@ -10,8 +10,8 @@ const {
 } = require("../utils");
 const logger = require("../vo/Logger");
 const HttpResult = require("../vo/HttpResult");
-const { Captcha } = require("captcha-canvas");
-async function login({ username, password }) {
+const svgCaptcha = require("svg-captcha");
+async function login({ username, password, captchaText, captchaSalt }) {
   try {
     if (isEmpty(username) || isEmpty(password)) {
       return HttpResult.fail();
@@ -685,18 +685,16 @@ async function checkTrial({ _jwtinfo }) {
  * @returns {} {base64:图片base64码,salt:加密后的串}
  */
 async function makeCaptcha() {
-  const captcha = new Captcha(); //create a captcha canvas of 100x300.
-  captcha.async = false; //Sync
-  captcha.addDecoy(); //Add decoy text on captcha canvas.
-  captcha.drawTrace({
-    opacity:0.5
-  }); //draw trace lines on captcha canvas.
-  captcha.drawCaptcha(); //draw captcha text on captcha canvas.
-  let text = `!@#${captcha.text.toUpperCase()}#@!`;
+  let { data, text } = svgCaptcha.create({
+    size: 4,
+    noise: 2,
+    color: "#ff5000",
+  });
+  let _text = `!@#${text.toUpperCase()}#@!`;
   return HttpResult.success({
     result: {
-      base64: Buffer.from(captcha.png).toString("base64"),
-      salt: md5(text),
+      base64: data,
+      salt: md5(_text),
     },
   });
 }
@@ -708,6 +706,16 @@ async function makeCaptcha() {
  * @returns
  */
 async function validateCaptcha({ captchaText, captchaSalt }) {
+  if (typeof captchaText !== "string") {
+    return HttpResult.success({
+      result: false,
+    });
+  }
+  if (captchaText.length < 4) {
+    return HttpResult.success({
+      result: false,
+    });
+  }
   let text = String(captchaText).toUpperCase();
   let saltText = `!@#${text}#@!`;
 

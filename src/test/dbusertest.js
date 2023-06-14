@@ -38,14 +38,21 @@ async function testUserPageList() {
   console.log(result);
 }
 
+function testMakeCaptcha(){
+  let result = UserModel.makeCaptcha()
+  console.log(result)
+}
+
 async function test() {
   // await testAddUser()
 
   // testEditUser()
 
-  testDelUser()
+  // testDelUser()
 
   // await testUserPageList();
+
+  testMakeCaptcha()
 }
 
 test();
