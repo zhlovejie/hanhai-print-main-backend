@@ -13,6 +13,30 @@ const HttpResult = require("../vo/HttpResult");
 const svgCaptcha = require("svg-captcha");
 async function login({ username, password, captchaText, captchaSalt }) {
   try {
+    if (typeof captchaText !== "string") {
+      return HttpResult.fail({
+        message: "验证码错误",
+      });
+    }
+    if (captchaText.length < 4) {
+      return HttpResult.fail({
+        message: "验证码错误",
+      });
+    }
+    if (typeof captchaSalt !== "string") {
+      return HttpResult.fail({
+        message: "验证码错误",
+      });
+    }
+    let text = String(captchaText).toUpperCase();
+    let saltText = `!@#${text}#@!`;
+
+    if (md5(saltText) !== captchaSalt) {
+      return HttpResult.fail({
+        message: "验证码错误",
+      });
+    }
+
     if (isEmpty(username) || isEmpty(password)) {
       return HttpResult.fail();
     }
